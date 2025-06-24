@@ -1,19 +1,19 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from .routes import main
+from dotenv import load_dotenv
 import os
 
 db = SQLAlchemy()
 
 def create_app():
+    load_dotenv()
     app = Flask(__name__)
+    app.config.from_object('config.Config')
+    db.init_app(app)
     CORS(app)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///notes.db')
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret123')
-
-    db.init_app(app)
-    app.register_blueprint(main)
+    from app.routes import routes_bp
+    app.register_blueprint(routes_bp)
 
     return app
