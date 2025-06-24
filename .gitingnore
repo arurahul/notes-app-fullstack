@@ -1,0 +1,17 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# Flask-related
+instance/
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+.env.*
