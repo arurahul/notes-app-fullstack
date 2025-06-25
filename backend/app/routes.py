@@ -26,20 +26,24 @@ def createNote():
 
 #Update Note
 @routes_bp.route("/notes/<int:notes_id>",methods=['PUT'])
+@jwt_required
 def updateNotes(notes_id):
+    user_id = get_jwt_identity()
     data=request.get_json()
-    note=Note.query.all(notes_id)
+    note=Note.query.filter_by(id=notes_id,user_id=user_id).first()
     if note:
         note.title=data["title"]
         note.content=data["content"]
         db.session.commit()
-        return jsonify({"message":"Note Updated Successfully"}),200
+        return jsonify(note.to_dict()), 200
     return jsonify({"message":"Note Not Found"}),404
 
 #Delete Note
 @routes_bp.route("/notes/<int:notes_id>",methods=["DELETE"])
+@jwt_required
 def deleteNote(notes_id):
-    note = Note.query.get(notes_id)
+    user_id = get_jwt_identity()
+    note=Note.query.filter_by(id=notes_id,user_id=user_id).first()
     if note:
         db.session.delete(note)
         db.session.commit()
