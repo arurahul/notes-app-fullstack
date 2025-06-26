@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from .models import Note,Tag,User
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from . import db
+from sqlalchemy import or_
 routes_bp = Blueprint('routes', __name__)
 
 
@@ -9,9 +10,37 @@ routes_bp = Blueprint('routes', __name__)
 @routes_bp.route('/notes',methods=['GET'])
 @jwt_required
 def getAllNotes():
-    user_id=get_jwt_identity()
-    notes=Note.query.filter_by(user_id=user_id).all()
-    return jsonify([note.to_dict() for note in notes])
+    user_id = get_jwt_identity()
+
+    # 🧮 Read pagination params from query string
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    search_query = request.args.get('q', '', type=str)
+    tag_name = request.args.get('tag', '', type=str)
+
+    notes_query = Note.query.filter_by(user_id=user_id).order_by(Note.created_at.desc())
+    
+    if search_query:
+        notes_query = notes_query.filter(
+            or_(
+                Note.title.ilike(f"%{search_query}%"),
+                Note.content.ilike(f"%{search_query}%")
+            )
+        )
+
+    if tag_name:
+        notes_query = notes_query.join(Note.tags).filter(Tag.name == tag_name)
+        
+    paginated_notes = notes_query.paginate(page=page, per_page=limit, error_out=False)
+
+    notes = [note.to_dict() for note in paginated_notes.items]
+
+    return jsonify({
+        "notes": notes,
+        "page": page,
+        "total_pages": paginated_notes.pages,
+        "total_items": paginated_notes.total
+    }), 200
 
 #Create Notes
 @routes_bp.route("/notes",methods=['POST'])
