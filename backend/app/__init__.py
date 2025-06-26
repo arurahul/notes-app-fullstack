@@ -17,7 +17,9 @@ def create_app():
     CORS(app)
 
     from app.routes import routes_bp
+    from app.tags import tags_bp
     app.register_blueprint(routes_bp)
+    app.register_blueprint(tags_bp)
     with app.app_context():
         db.create_all()
 
