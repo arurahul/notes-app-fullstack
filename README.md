@@ -97,7 +97,7 @@ This app allows users to:
   - `tag`: filter notes by tag name
   - Example: `/notes?q=meeting&tag=work&page=1&limit=10`
 
-### Tags
+###c Tags
 
 | Method | Endpoint           | Description              |
 |--------|--------------------|--------------------------|
@@ -133,16 +133,19 @@ This app allows users to:
 - CRUD APIs with Flask and SQLAlchemy
 - Query parameter handling for search, filter, and pagination
 - Writing clean, maintainable backend code ready for production
-
+- Built detail API with route caching using Redis
+- Cached frequently accessed shared data
+- Connected, configured, and tested with Flask
+- Implemented time-based TTL caching with decorator logic
 ---
 
-## Next Steps
+### Day 5: Redis Caching Integration
 
-- Day 5: Integrate Redis caching to speed up note and tag retrieval
-- Frontend React app setup with Tailwind CSS styling and token-based authentication flow
-- Real-time syncing with WebSockets
-- Adding user roles and permissions
-- Writing tests and improving documentation
+- ✅ Added Redis setup in `app.py` using Flask-Caching
+- ✅ Cached `GET /notes/<id>` route (60s TTL)
+- ✅ Cached `GET /tags` route (5min TTL)
+- ✅ Verified Redis performance using repeat API calls
+- ✅ Ensured extension order (cache before blueprints)
 
 ---
 

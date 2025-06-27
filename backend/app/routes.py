@@ -3,12 +3,14 @@ from .models import Note,Tag,User
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from . import db
 from sqlalchemy import or_
+from app import cache
 routes_bp = Blueprint('routes', __name__)
 
 
 #Get All Notes
 @routes_bp.route('/notes',methods=['GET'])
 @jwt_required
+
 def getAllNotes():
     user_id = get_jwt_identity()
 
@@ -23,7 +25,7 @@ def getAllNotes():
     if search_query:
         notes_query = notes_query.filter(
             or_(
-                Note.title.ilike(f"%{search_query}%"),
+                Note.title.ilike(f"%{search_query}%"),cd ba
                 Note.content.ilike(f"%{search_query}%")
             )
         )
@@ -42,6 +44,25 @@ def getAllNotes():
         "total_items": paginated_notes.total
     }), 200
 
+#Get single note
+@routes_bp.route('/notes/<int:note_id>', methods=['GET'])
+@jwt_required()
+@cache.cached(timeout=60)  # Caching the detail response
+def get_note(note_id):
+    user_id = get_jwt_identity()
+    note = Note.query.filter_by(id=note_id, user_id=user_id).first()
+
+    if not note:
+        return jsonify({"error": "Note not found"}), 404
+
+    return jsonify({
+        "id": note.id,
+        "title": note.title,
+        "content": note.content,
+        "tags": [tag.name for tag in note.tags],
+        "created_at": note.created_at.isoformat()
+    })
+    
 #Create Notes
 @routes_bp.route("/notes",methods=['POST'])
 @jwt_required
