@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from .models import Note,Tag,User
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import create_access_token
 from . import db
 from sqlalchemy import or_
 from app import cache
@@ -8,9 +10,8 @@ routes_bp = Blueprint('routes', __name__)
 
 
 #Get All Notes
-@routes_bp.route('/notes',methods=['GET'])
-@jwt_required
-
+@routes_bp.route('/notes',methods=['GET'], endpoint='allNotes')
+@jwt_required()
 def getAllNotes():
     user_id = get_jwt_identity()
 
@@ -20,12 +21,12 @@ def getAllNotes():
     search_query = request.args.get('q', '', type=str)
     tag_name = request.args.get('tag', '', type=str)
 
-    notes_query = Note.query.filter_by(user_id=user_id).order_by(Note.created_at.desc())
+    notes_query = Note.query.filter_by(user_id=int(user_id)).order_by(Note.created_at.desc())
     
     if search_query:
         notes_query = notes_query.filter(
             or_(
-                Note.title.ilike(f"%{search_query}%"),cd ba
+                Note.title.ilike(f"%{search_query}%"),
                 Note.content.ilike(f"%{search_query}%")
             )
         )
@@ -45,12 +46,12 @@ def getAllNotes():
     }), 200
 
 #Get single note
-@routes_bp.route('/notes/<int:note_id>', methods=['GET'])
+@routes_bp.route('/notes/<int:note_id>', methods=['GET'], endpoint='get_note')
 @jwt_required()
-@cache.cached(timeout=60)  # Caching the detail response
+@cache.cached(timeout=60)
 def get_note(note_id):
     user_id = get_jwt_identity()
-    note = Note.query.filter_by(id=note_id, user_id=user_id).first()
+    note = Note.query.filter_by(id=note_id, user_id=int(user_id)).first()
 
     if not note:
         return jsonify({"error": "Note not found"}), 404
@@ -64,23 +65,23 @@ def get_note(note_id):
     })
     
 #Create Notes
-@routes_bp.route("/notes",methods=['POST'])
-@jwt_required
+@routes_bp.route("/notes",methods=['POST'], endpoint='create_note')
+@jwt_required()
 def createNote():
     user_id=get_jwt_identity()
     data=request.get_json()
-    new_note=Note(title=data["title"],content=data["content"],user_id=user_id)
+    new_note=Note(title=data["title"],content=data["content"],user_id=int(user_id))
     db.session.add(new_note)
     db.session.commit()
     return jsonify(new_note.to_dict()),201
 
 #Update Note
-@routes_bp.route("/notes/<int:notes_id>",methods=['PUT'])
-@jwt_required
+@routes_bp.route("/notes/<int:notes_id>",methods=['PUT'], endpoint='update_note')
+@jwt_required()
 def updateNotes(notes_id):
     user_id = get_jwt_identity()
     data=request.get_json()
-    note=Note.query.filter_by(id=notes_id,user_id=user_id).first()
+    note=Note.query.filter_by(id=notes_id,user_id=int(user_id)).first()
     if note:
         note.title=data["title"]
         note.content=data["content"]
@@ -89,13 +90,45 @@ def updateNotes(notes_id):
     return jsonify({"message":"Note Not Found"}),404
 
 #Delete Note
-@routes_bp.route("/notes/<int:notes_id>",methods=["DELETE"])
-@jwt_required
+@routes_bp.route("/notes/<int:notes_id>",methods=["DELETE"], endpoint='delete_note')
+@jwt_required()
 def deleteNote(notes_id):
     user_id = get_jwt_identity()
-    note=Note.query.filter_by(id=notes_id,user_id=user_id).first()
+    note=Note.query.filter_by(id=notes_id,user_id=int(user_id)).first()
     if note:
         db.session.delete(note)
         db.session.commit()
         return jsonify({"message": "Note Deleted Successfully"}), 200
     return jsonify({"message": "Note Not Found"}), 404
+
+#Register User
+@routes_bp.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data or not data.get("email") or not data.get("password"):
+        return jsonify({"message": "Email and password required"}), 400
+
+    if User.query.filter_by(email=data["email"]).first():
+        return jsonify({"message": "User already exists"}), 409
+
+    hashed_password = generate_password_hash(data["password"])
+    new_user = User(email=data["email"], password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+#Login user
+@routes_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    if not data or not data.get("email") or not data.get("password"):
+        return jsonify({"message": "Email and password required"}), 400
+
+    user = User.query.filter_by(email=data["email"]).first()
+
+    if not user or not check_password_hash(user.password, data["password"]):
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    access_token = create_access_token(identity=str(user.id))
+    return jsonify({"access_token": access_token}), 200

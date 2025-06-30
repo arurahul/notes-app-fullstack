@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Tag, Note
+from .models import db, Tag, Note
 from app import cache
 tags_bp = Blueprint('tags', __name__)
 
 # Create a tag
-@tags_bp.route('/tags', methods=['POST'])
-@jwt_required
+@tags_bp.route('/tags', methods=['POST'], endpoint='create_tag')
+@jwt_required()
 def create_tag():
     data = request.get_json()
     name = data.get('name')
@@ -24,14 +24,15 @@ def create_tag():
 
 # Get all tags
 @tags_bp.route('/tags', methods=['GET'])
-@jwt_required
+@jwt_required()
 @cache.cached(timeout=300)
 def get_tags():
     tags = Tag.query.all()
     return jsonify([tag.to_dict() for tag in tags]), 200
 
-@tags_bp.route('/notes/<int:note_id>/tags', methods=['POST'])
-@jwt_required
+#Update Tag to Note ID
+@tags_bp.route('/notes/<int:note_id>/tags', methods=['POST'], endpoint='attach_tag')
+@jwt_required()
 def attach_tags_to_note(note_id):
     data = request.get_json()
     tag_ids = data.get('tag_ids', [])
@@ -49,8 +50,8 @@ def attach_tags_to_note(note_id):
     return jsonify(note.to_dict()), 200
 
 # Remove a tag from a note
-@tags_bp.route('/notes/<int:note_id>/tags/<int:tag_id>', methods=['DELETE'])
-@jwt_required
+@tags_bp.route('/notes/<int:note_id>/tags/<int:tag_id>', methods=['DELETE'], endpoint='delete_tag')
+@jwt_required()
 def remove_tag_from_note(note_id, tag_id):
     note = Note.query.get(note_id)
     if not note:
