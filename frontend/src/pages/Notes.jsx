@@ -2,12 +2,13 @@
     import axiosInstance from "../api/axiosInstance";
     import NoteCard from "../components/NoteCard";
     import socket from "../socket";
+     import { useNavigate } from "react-router-dom";
     import LoadingSpinner from "../components/LoadingSpinner";
     export default function Notes() {
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTag, setSelectedTag] = useState("");
-
+    const navigate=useNavigate()
     // Fetch notes, refetch when selectedTag changes
     useEffect(() => {
         setLoading(true);
@@ -57,9 +58,11 @@
     }, [selectedTag]);
 
     // Edit callback
-    const handleEdit = (note) => {
-        console.log("Edit note:", note);
+    const handleEdit = (noteID) => {
+        console.log("Edit note:", noteID);
         // Open a modal or navigate to edit page
+        
+        navigate(`/notes/${noteID}`)
     };
 
     // Delete callback

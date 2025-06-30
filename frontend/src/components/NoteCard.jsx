@@ -1,5 +1,4 @@
     import React from "react";
-
     export default function NoteCard({ note, onEdit, onDelete }) {
     // Format created date nicely
     const createdDate = new Date(note.created_at).toLocaleDateString(undefined, {
@@ -39,7 +38,7 @@
             onClick={(e) => e.stopPropagation()} // Prevent parent click event
         >
             <button
-            onClick={() => onEdit(note)}
+            onClick={() => onEdit(note.id)}
             className="p-1 rounded-full hover:bg-blue-200"
             aria-label="Edit Note"
             title="Edit Note"
