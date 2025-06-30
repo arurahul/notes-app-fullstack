@@ -1,7 +1,7 @@
     import { useParams } from 'react-router-dom';
     import { useEffect, useState } from 'react';
     import axios from '../api/axiosInstance';
-
+    import LoadingSpinner from '../components/LoadingSpinner';
     export default function NoteEditor() {
     const { id } = useParams();
     const [note, setNote] = useState(null);
@@ -10,7 +10,7 @@
     useEffect(() => {
         axios.get(`/notes/${id}`)
         .then(res => {
-            setNote(res.data.note);
+            setNote(res.data);
             setLoading(false);
         })
         .catch(err => {
@@ -23,7 +23,7 @@
         setNote({ ...note, [e.target.name]: e.target.value });
     }
 
-    function handleSave() {
+    function handleSave(){
         axios.put(`/notes/${id}`, {
         title: note.title,
         content: note.content
@@ -33,9 +33,8 @@
         console.error('Error saving', err);
         });
     }
-
-    if (loading) return <p className="p-4">Loading note...</p>;
-    if (!note) return <p className="p-4">Note not found.</p>;
+    if (loading) return <LoadingSpinner />;
+    if (!note) return <p className="p-4">Note not founds checks.</p>;
 
     return (
         <div className="p-6 max-w-3xl mx-auto">

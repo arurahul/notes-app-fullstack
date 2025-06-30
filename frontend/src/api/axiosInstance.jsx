@@ -1,6 +1,7 @@
     import axios from "axios";
     const axiosInstance=axios.create({
-        baseURl:'http://localhost:3000',
+          baseURL: "http://localhost:5000",  // <- Should point to Flask backend
+        withCredentials: true,
     })
 
     // Add token to each request automatically
@@ -27,4 +28,4 @@
     }
     );
 
-    export default axiosInstance;
+export default axiosInstance;
