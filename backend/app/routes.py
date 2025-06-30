@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from . import db
 from sqlalchemy import or_
-from app import cache
+from app import cache,socketio
 routes_bp = Blueprint('routes', __name__)
 
 
@@ -73,6 +73,7 @@ def createNote():
     new_note=Note(title=data["title"],content=data["content"],user_id=int(user_id))
     db.session.add(new_note)
     db.session.commit()
+    socketio.emit("note_created", new_note.to_dict())
     return jsonify(new_note.to_dict()),201
 
 #Update Note
@@ -86,6 +87,7 @@ def updateNotes(notes_id):
         note.title=data["title"]
         note.content=data["content"]
         db.session.commit()
+        socketio.emit("note_updated", note.to_dict())
         return jsonify(note.to_dict()), 200
     return jsonify({"message":"Note Not Found"}),404
 
@@ -98,6 +100,8 @@ def deleteNote(notes_id):
     if note:
         db.session.delete(note)
         db.session.commit()
+        # Emit note ID only since it's deleted
+        socketio.emit("note_deleted", {"id": note.id})
         return jsonify({"message": "Note Deleted Successfully"}), 200
     return jsonify({"message": "Note Not Found"}), 404
 
