@@ -165,6 +165,7 @@
         {/* Edit Note Modal */}
         {editingNote && (
             <EditNoteModal
+            isOpen={!!editingNote}
             note={editingNote}
             onClose={() => setEditingNote(null)}
             onUpdate={handleUpdate}

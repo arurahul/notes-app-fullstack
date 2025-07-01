@@ -58,9 +58,9 @@
                 <div className="flex flex-wrap gap-2">
                 {availableTags.map((tag) => (
                     <label
-                    key={tag}
+                    key={tag.id}
                     className={`px-2 py-1 text-sm rounded cursor-pointer border ${
-                        selectedTags.includes(tag)
+                        selectedTags.includes(tag.name)
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-800"
                     }`}
@@ -68,10 +68,10 @@
                     <input
                         type="checkbox"
                         className="hidden"
-                        checked={selectedTags.includes(tag)}
-                        onChange={() => handleTagChange(tag)}
+                        checked={selectedTags.includes(tag.name)}
+                        onChange={() => handleTagChange(tag.id)}
                     />
-                    {tag}
+                    {tag.name}
                     </label>
                 ))}
                 </div>

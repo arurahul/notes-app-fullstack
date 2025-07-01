@@ -11,9 +11,10 @@
             onChange={(e) => onChange(e.target.value)}
         >
             <option value="">All Tags</option>
+            {console.log(tags)}
             {tags.map((tag) => (
-            <option key={tag} value={tag}>
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
+            <option key={tag.id} value={tag.name}>
+                {tag.name}
             </option>
             ))}
         </select>
