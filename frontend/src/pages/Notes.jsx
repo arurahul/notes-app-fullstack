@@ -6,7 +6,7 @@
     import toast from "react-hot-toast";
     import LoadingSpinner from "../components/LoadingSpinner";
     import TagFilter from "../components/TagFilter";
-    import CreateNoteModal from "../components/CreateNoteMOdal";
+    import CreateNoteModal from "../components/CreateNoteModal";
     import EditNoteModal from "../components/EditNoteModal";
 
     export default function Notes() {
@@ -167,7 +167,7 @@
             <EditNoteModal
             note={editingNote}
             onClose={() => setEditingNote(null)}
-            onSave={handleUpdate}
+            onUpdate={handleUpdate}
             availableTags={availableTags}
             />
         )}

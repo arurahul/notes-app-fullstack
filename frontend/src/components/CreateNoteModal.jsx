@@ -1,7 +1,7 @@
     import { Dialog } from "@headlessui/react";
     import { useState } from "react";
 
-    export default function CreateNoteModal({ isOpen, onClose, onCreate, availableTags }) {
+    export default function CreateNoteModal({ isOpen, onClose, onCreate, availableTags=[] }) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [selectedTags, setSelectedTags] = useState([]);
