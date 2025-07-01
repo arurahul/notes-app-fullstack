@@ -88,7 +88,7 @@ def updateNotes(notes_id):
         note.content=data["content"]
         db.session.commit()
         socketio.emit("note_updated", note.to_dict())
-        return jsonify(note.to_dict()), 200
+        return jsonify({"note":note.to_dict()}), 200
     return jsonify({"message":"Note Not Found"}),404
 
 #Delete Note

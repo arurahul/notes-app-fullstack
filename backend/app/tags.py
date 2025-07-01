@@ -28,7 +28,8 @@ def create_tag():
 @cache.cached(timeout=300)
 def get_tags():
     tags = Tag.query.all()
-    return jsonify([tag.to_dict() for tag in tags]), 200
+    allTags=[tag.to_dict() for tag in tags]
+    return jsonify({"tags":allTags}), 200
 
 #Update Tag to Note ID
 @tags_bp.route('/notes/<int:note_id>/tags', methods=['POST'], endpoint='attach_tag')
