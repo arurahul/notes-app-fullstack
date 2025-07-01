@@ -1,59 +1,84 @@
-    import React from "react";
-    export default function NoteCard({ note, onEdit, onDelete }) {
-    // Format created date nicely
-    const createdDate = new Date(note.created_at).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
+    import { useState } from "react";
+    import { Dialog } from "@headlessui/react";
+
+    export default function NoteCard({ note, onDelete, onEdit }) {
+    const [isDeleteConfirm, setIsDeleteConfirm] = useState(false);
+
+    const handleDelete = async () => {
+        try {
+        await onDelete(note.id);
+        setIsDeleteConfirm(false);
+        } catch {
+        // error handled by parent onDelete
+        }
+    };
 
     return (
-        <div
-        className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-4 cursor-pointer relative"
-        onClick={() => onEdit(note)}
-        title="Click to edit"
-        >
-        <h2 className="text-xl font-semibold mb-2 truncate">{note.title}</h2>
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">{note.content}</p>
+        <div className="bg-white shadow rounded-lg p-4 relative border">
+        <h3 className="text-lg font-semibold">{note.title}</h3>
+        <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{note.content}</p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-            {note.tags.map((tag) => (
+        <div className="mt-3 text-sm flex gap-2 flex-wrap">
+            {(note.tags || []).map((tag) => (
             <span
-                key={tag.id || tag.name}
-                className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
-                title={tag.name}
+                key={typeof tag === "string" ? tag : tag.id || tag.name}
+                className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
             >
-                #{tag.name}
+                {typeof tag === "string" ? tag : tag.name}
             </span>
             ))}
         </div>
 
-        {/* Created Date */}
-        <div className="text-gray-400 text-xs mb-3">{createdDate}</div>
-
-        {/* Action Buttons */}
-        <div
-            className="absolute top-2 right-2 flex gap-2 opacity-0 hover:opacity-100 transition-opacity duration-300"
-            onClick={(e) => e.stopPropagation()} // Prevent parent click event
-        >
+        <div className="mt-4 flex justify-end gap-2">
             <button
-            onClick={() => onEdit(note.id)}
-            className="p-1 rounded-full hover:bg-blue-200"
-            aria-label="Edit Note"
-            title="Edit Note"
+            className="text-blue-600 hover:underline focus:outline-none"
+            onClick={() => onEdit(note)}
+            aria-label={`Edit note titled ${note.title}`}
             >
-            ✏️
+            Edit
             </button>
+
             <button
-            onClick={() => onDelete(note.id)}
-            className="p-1 rounded-full hover:bg-red-200"
-            aria-label="Delete Note"
-            title="Delete Note"
+            className="text-red-600 hover:underline focus:outline-none"
+            onClick={() => setIsDeleteConfirm(true)}
+            aria-label={`Delete note titled ${note.title}`}
             >
-            🗑️
+            Delete
             </button>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog
+            open={isDeleteConfirm}
+            onClose={() => setIsDeleteConfirm(false)}
+            className="relative z-50"
+        >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Dialog.Panel className="bg-white rounded p-6 w-full max-w-sm">
+                <Dialog.Title className="font-semibold text-lg">
+                Delete this note?
+                </Dialog.Title>
+                <p className="mt-2 text-sm text-gray-600">
+                This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-2 mt-4">
+                <button
+                    onClick={() => setIsDeleteConfirm(false)}
+                    className="px-4 py-2 rounded border"
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={handleDelete}
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                >
+                    Delete
+                </button>
+                </div>
+            </Dialog.Panel>
+            </div>
+        </Dialog>
         </div>
     );
     }
