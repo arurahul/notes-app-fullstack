@@ -18,7 +18,7 @@ def getAllNotes():
     # 🧮 Read pagination params from query string
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
-    search_query = request.args.get('q', '', type=str)
+    search_query = request.args.get('search', '', type=str).lower()
     tag_name = request.args.get('tag', '', type=str)
 
     notes_query = Note.query.filter_by(user_id=int(user_id)).order_by(Note.created_at.desc())
@@ -86,6 +86,7 @@ def updateNotes(notes_id):
     if note:
         note.title=data["title"]
         note.content=data["content"]
+        note.pinned=data.get("pinned",note.pinned)
         db.session.commit()
         socketio.emit("note_updated", note.to_dict())
         return jsonify({"note":note.to_dict()}), 200
