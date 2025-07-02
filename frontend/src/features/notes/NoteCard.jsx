@@ -1,7 +1,8 @@
     import { useState } from "react";
     import { Dialog } from "@headlessui/react";
-
-    export default function NoteCard({ note, onDelete, onEdit }) {
+    import {PinIcon,PinOffIcon,Pencil, Trash2} from "lucide-react";
+    import { truncateText, formatDate, formatTags } from "../utils/helper";
+    export default function NoteCard({ note, onDelete, onEdit,onTogglePin }) {
     const [isDeleteConfirm, setIsDeleteConfirm] = useState(false);
 
     const handleDelete = async () => {
@@ -14,10 +15,22 @@
     };
 
     return (
-        <div className="bg-white shadow rounded-lg p-4 relative border">
+        <div className="border rounded-lg shadow p-4 relative bg-white">
+                  {/* 📌 Pin Button - top right */}
+        <button
+            onClick={() => onTogglePin(note)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-yellow-500"
+            title={note.pinned ? "Unpin" : "Pin"}
+        >
+            {note.pinned ? <PinIcon className="w-5 h-5" /> : <PinOffIcon className="w-5 h-5" />}
+        </button>
         <h3 className="text-lg font-semibold">{note.title}</h3>
         <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{note.content}</p>
-
+        <p>{truncateText(note.content)}</p>
+        <span className="text-sm text-gray-500">
+        {formatDate(note.created_at)}
+        </span>
+        <p className="text-xs text-gray-600">{formatTags(note.tags)}</p>
         <div className="mt-3 text-sm flex gap-2 flex-wrap">
             {(note.tags || []).map((tag) => (
             <span

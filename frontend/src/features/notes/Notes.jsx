@@ -1,13 +1,14 @@
     import { useState, useEffect } from "react";
-    import axiosInstance from "../api/axiosInstance";
+    import axiosInstance from "../../api/axiosInstance";
     import { useNavigate } from "react-router-dom";
-    import NoteCard from "../components/NoteCard";
-    import socket from "../socket";
+    import NoteCard from "./NoteCard";
+    import socket from "../../socket";
     import toast from "react-hot-toast";
-    import LoadingSpinner from "../components/LoadingSpinner";
-    import TagFilter from "../components/TagFilter";
-    import CreateNoteModal from "../components/CreateNoteModal";
-    import EditNoteModal from "../components/EditNoteModal";
+    import LoadingSpinner from "../../components/ui/LoadingSpinner";
+    import TagFilter from "../../components/ui/TagFilter";
+    import CreateNoteModal from "./modals/CreateNoteModal";
+    import EditNoteModal from "./modals/EditNoteModal";
+  
 
     export default function Notes() {
     const [notes, setNotes] = useState([]);
@@ -16,14 +17,20 @@
     const [availableTags, setAvailableTags] = useState([]);
     const [editingNote, setEditingNote] = useState(null);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [searchTerm,setSearchTerm]=useState("");
 
     const navigate = useNavigate();
 
     // Fetch notes, optionally filtered by tag
-    const fetchNotes = async (tag = "") => {
+    const fetchNotes = async (tag = "",search="") => {
         setLoading(true);
         try {
-        const res = await axiosInstance.get(`/notes${tag ? `?tag=${tag}` : ""}`);
+        const res = await axiosInstance.get(`/notes`, {
+        params: {
+            tag,
+            search,
+            },
+        });
         setNotes(res.data.notes);
         } catch (error) {
         console.error("Error fetching notes:", error);
@@ -46,9 +53,9 @@
 
     // Fetch notes and tags on mount and when selectedTag changes
     useEffect(() => {
-        fetchNotes(selectedTag);
+        fetchNotes(selectedTag,searchTerm);
         fetchTags();
-    }, [selectedTag]);
+    }, [selectedTag,searchTerm]);
 
     // Setup Socket.IO listeners for real-time note updates
     useEffect(() => {
@@ -109,6 +116,22 @@
         }
     };
 
+    const handleTogglePin = async (note) => {
+    try {
+        const res = await axiosInstance.put(`/notes/${note.id}`, {
+        pinned: !note.pinned,
+        });
+        const updated = res.data.note;
+
+        setNotes((prev) =>
+        prev.map((n) => (n.id === updated.id ? updated : n))
+        );
+        toast.success(updated.pinned ? "Note pinned!" : "Note unpinned.");
+    } catch (error) {
+        console.error("Pin toggle failed:", error);
+        toast.error("Failed to update pin status.");
+    }
+    };
     return (
         <div className="p-6 max-w-4xl mx-auto">
         {/* Header and create new note button */}
@@ -120,6 +143,13 @@
             >
             + New Note
             </button>
+                <input
+                type="text"
+                className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                placeholder="Search notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
         </div>
 
         {/* Tag Filter Dropdown */}
@@ -135,17 +165,28 @@
             <LoadingSpinner />
             </div>
         ) : notes.length === 0 ? (
-            <p className="text-gray-500 mt-6 text-center">
-            No notes found for selected tag.
-            </p>
-        ) : (
+            <div className="text-center mt-10 text-gray-600">
+                <div className="text-4xl mb-4">🗒️</div>
+                {selectedTag || searchTerm ? (
+                <p className="text-lg">No notes match your current filters.</p>
+                ) : (
+                <>
+                    <p className="text-lg">You don’t have any notes yet.</p>
+                    <p className="text-sm mt-2">Click the “+ New Note” button to create one.</p>
+                </>
+                )}
+            </div>
+            ) : (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 mt-6">
-            {notes.map((note) => (
+            {notes.slice()
+                .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0))
+                .map((note) => (
                 <NoteCard
                 key={note.id}
                 note={note}
                 onEdit={() => handleEdit(note)}
                 onDelete={() => handleDelete(note.id)}
+                onTogglePin={handleTogglePin}
                 />
             ))}
             </div>

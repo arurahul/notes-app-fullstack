@@ -1,7 +1,7 @@
     import { useParams } from 'react-router-dom';
     import { useEffect, useState } from 'react';
     import axios from '../api/axiosInstance';
-    import LoadingSpinner from '../components/LoadingSpinner';
+    import LoadingSpinner from '../components/ui/LoadingSpinner';
     export default function NoteEditor() {
     const { id } = useParams();
     const [note, setNote] = useState(null);
