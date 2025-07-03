@@ -33,7 +33,7 @@ def create_app():
     app.register_blueprint(routes_bp)
     app.register_blueprint(tags_bp)
 
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
     from app import sockets 
     return app

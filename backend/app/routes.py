@@ -7,45 +7,51 @@ from . import db
 from math import ceil
 from sqlalchemy import or_
 from app import cache,socketio
+from flask import current_app
+import traceback
 routes_bp = Blueprint('routes', __name__)
 
 
-#Get All Notes
-@routes_bp.route('/notes',methods=['GET'], endpoint='allNotes')
+@routes_bp.route('/notes', methods=['GET'], endpoint='allNotes')
 @jwt_required()
 def getAllNotes():
-    user_id = get_jwt_identity()
+    try:
+        user_id = get_jwt_identity()
 
-    # 🧮 Read pagination params from query string
-    page = request.args.get('page', 1, type=int)
-    limit = request.args.get('per_page', 6, type=int)
-    search_query = request.args.get('search', '', type=str).lower()
-    tag_name = request.args.get('tag', '', type=str)
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('per_page', 6, type=int)
+        search_query = request.args.get('search', '', type=str).lower()
+        tag_name = request.args.get('tag', '', type=str)
 
-    notes_query = Note.query.filter_by(user_id=int(user_id)).order_by(Note.created_at.desc())
-    
-    if search_query:
-        notes_query = notes_query.filter(
-            or_(
-                Note.title.ilike(f"%{search_query}%"),
-                Note.content.ilike(f"%{search_query}%")
+        notes_query = Note.query.filter_by(user_id=int(user_id)).order_by(Note.created_at.desc())
+
+        if search_query:
+            notes_query = notes_query.filter(
+                or_(
+                    Note.title.ilike(f"%{search_query}%"),
+                    Note.content.ilike(f"%{search_query}%")
+                )
             )
-        )
 
-    if tag_name:
-        notes_query = notes_query.join(Note.tags).filter(Tag.name == tag_name)
-        
-    paginated_notes = notes_query.paginate(page=page, per_page=limit, error_out=False)
+        if tag_name:
+            notes_query = notes_query.join(Note.tags).filter(Tag.name == tag_name)
 
-    notes = [note.to_dict() for note in paginated_notes.items]
+        paginated_notes = notes_query.paginate(page=page, per_page=limit, error_out=False)
 
-    return jsonify({
-        "notes": notes,
-        "page": page,
-        "per_page": limit,
-        "total_pages": ceil(paginated_notes.pages/limit),
-        "total_items": paginated_notes.total
-    }), 200
+        notes = [note.to_dict() for note in paginated_notes.items]
+
+        return jsonify({
+            "notes": notes,
+            "page": page,
+            "per_page": limit,
+            "total_pages": paginated_notes.pages,
+            "total_items": paginated_notes.total
+        }), 200
+
+    except Exception as e:
+        current_app.logger.error("Error in getAllNotes: %s", e)
+        traceback.print_exc()
+        return jsonify({"error": "Internal Server Error"}), 500
 
 #Get single note
 @routes_bp.route('/notes/<int:note_id>', methods=['GET'], endpoint='get_note')
