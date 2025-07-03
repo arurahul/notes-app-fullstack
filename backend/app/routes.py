@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from . import db
+from math import ceil
 from sqlalchemy import or_
 from app import cache,socketio
 routes_bp = Blueprint('routes', __name__)
@@ -17,7 +18,7 @@ def getAllNotes():
 
     # 🧮 Read pagination params from query string
     page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', 10, type=int)
+    limit = request.args.get('per_page', 6, type=int)
     search_query = request.args.get('search', '', type=str).lower()
     tag_name = request.args.get('tag', '', type=str)
 
@@ -41,7 +42,8 @@ def getAllNotes():
     return jsonify({
         "notes": notes,
         "page": page,
-        "total_pages": paginated_notes.pages,
+        "per_page": limit,
+        "total_pages": ceil(paginated_notes.pages/limit),
         "total_items": paginated_notes.total
     }), 200
 
