@@ -18,20 +18,25 @@
     const [editingNote, setEditingNote] = useState(null);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [searchTerm,setSearchTerm]=useState("");
-
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const navigate = useNavigate();
 
     // Fetch notes, optionally filtered by tag
-    const fetchNotes = async (tag = "",search="") => {
+    const fetchNotes = async (tag = "",search="",pageNum = 1) => {
         setLoading(true);
         try {
         const res = await axiosInstance.get(`/notes`, {
         params: {
             tag,
             search,
+            page: pageNum,
+            per_page: 6,  // You can tweak how many notes per page
             },
         });
         setNotes(res.data.notes);
+        setTotalPages(res.data.total_pages);
+        setPage(res.data.page); // Keep current page in sync
         } catch (error) {
         console.error("Error fetching notes:", error);
         toast.error("Failed to load notes.");
@@ -55,24 +60,37 @@
     useEffect(() => {
         fetchNotes(selectedTag,searchTerm);
         fetchTags();
-    }, [selectedTag,searchTerm]);
+    }, [selectedTag,searchTerm,page]);
 
     // Setup Socket.IO listeners for real-time note updates
     useEffect(() => {
         socket.on("note_created", (note) => {
-        setNotes((prev) => [note, ...prev]);
-        toast.success("A new note was added!");
+        if (page === 1) {
+            setNotes((prev) => {
+            const updated = [note, ...prev];
+            return updated.length > 6 ? updated.slice(0, 6) : updated;
+            });
+            toast.success("A new note was added!");
+        } else {
+            toast("New note created. Go to page 1 to view it.", { icon: "🆕" });
+        }
         });
 
         socket.on("note_updated", (updatedNote) => {
         setNotes((prev) =>
             prev.map((note) => (note.id === updatedNote.id ? updatedNote : note))
         );
-        toast.success("A note was updated!");
-        });
-
+        toast.success("Note updated!", { icon: "✏️" });
+        }); 
         socket.on("note_deleted", ({ id }) => {
-        setNotes((prev) => prev.filter((note) => note.id !== id));
+        setNotes((prev) => {
+            const filtered = prev.filter((note) => note.id !== id);
+            if (filtered.length === 0 && page > 1) {
+            // Refetch previous page if current becomes empty
+            setPage((p) => Math.max(p - 1, 1));
+            }
+            return filtered;
+        });
         toast.success("A note was deleted!");
         });
 
@@ -88,7 +106,7 @@
         try {
         await axiosInstance.delete(`/notes/${id}`);
         setNotes((prev) => prev.filter((n) => n.id !== id));
-        toast.success("Note deleted");
+        toast.success("Note deleted!", { icon: "🗑️" });
         } catch (error) {
         console.error("Delete error:", error);
         toast.error("Failed to delete note");
@@ -108,7 +126,7 @@
         setNotes((prev) =>
             prev.map((note) => (note.id === updated.id ? updated : note))
         );
-        toast.success("Note updated");
+        toast.success("Note updated!", { icon: "✏️" });
         setEditingNote(null);
         } catch (error) {
         console.error("Update failed:", error);
@@ -126,7 +144,7 @@
         setNotes((prev) =>
         prev.map((n) => (n.id === updated.id ? updated : n))
         );
-        toast.success(updated.pinned ? "Note pinned!" : "Note unpinned.");
+        toast.success(updated.pinned ? "Note pinned!" : "Note unpinned.", { icon: "📌" });
     } catch (error) {
         console.error("Pin toggle failed:", error);
         toast.error("Failed to update pin status.");
@@ -135,7 +153,7 @@
     return (
         <div className="p-6 max-w-4xl mx-auto">
         {/* Header and create new note button */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <h1 className="text-3xl font-bold">📝 Your Notes</h1>
             <button
             onClick={() => setIsCreateOpen(true)}
@@ -171,8 +189,12 @@
                 <p className="text-lg">No notes match your current filters.</p>
                 ) : (
                 <>
-                    <p className="text-lg">You don’t have any notes yet.</p>
-                    <p className="text-sm mt-2">Click the “+ New Note” button to create one.</p>
+                <div className="text-center mt-10 text-gray-600">
+                    <div className="text-4xl mb-4">📭</div>
+                        <p className="text-lg font-medium">No notes found.</p>
+                        <p className="text-sm">Try adjusting tags or search terms.</p>
+                        <p className="text-sm mt-2">Click the “+ New Note” button to create one.</p>
+                </div>
                 </>
                 )}
             </div>
@@ -191,14 +213,45 @@
             ))}
             </div>
         )}
-
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+        <div className="mt-8 flex justify-center gap-2">
+            <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page === 1}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+            Prev
+            </button>
+            {[...Array(totalPages)].map((_, idx) => (
+            <button
+                key={idx}
+                onClick={() => setPage(idx + 1)}
+                className={`px-3 py-1 rounded ${
+                idx + 1 === page
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
+            >
+                {idx + 1}
+            </button>
+            ))}
+            <button
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={page === totalPages}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+            Next
+            </button>
+        </div>
+        )}
         {/* Create Note Modal */}
         <CreateNoteModal
             isOpen={isCreateOpen}
             onClose={() => setIsCreateOpen(false)}
             onSuccess={() => {
             setIsCreateOpen(false);
-            fetchNotes(selectedTag);
+            fetchNotes(selectedTag,searchTerm, page);
             }}
             availableTags={availableTags}
         />

@@ -1,11 +1,11 @@
     import { Dialog } from "@headlessui/react";
-    import { useState } from "react";
+    import { useState,useRef,useEffect } from "react";
 
     export default function CreateNoteModal({ isOpen, onClose, onCreate, availableTags=[] }) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [selectedTags, setSelectedTags] = useState([]);
-
+    const titleRef = useRef(null);
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
@@ -23,7 +23,9 @@
             : [...prev, tag]
         );
     };
-
+    useEffect(() => {
+    if (isOpen) titleRef.current?.focus();
+    }, [isOpen]);
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-50">
         {/* Overlay */}
@@ -38,6 +40,7 @@
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Title"
                 value={title}
+                ref={titleRef} 
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 />

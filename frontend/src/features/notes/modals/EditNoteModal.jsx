@@ -1,11 +1,11 @@
     import { Dialog } from "@headlessui/react";
-    import { useState, useEffect } from "react";
+    import { useState, useEffect,useRef } from "react";
 
     export default function EditNoteModal({ isOpen, onClose, note, onUpdate, availableTags=[] }) {
     const [title, setTitle] = useState(note.title || "");
     const [content, setContent] = useState(note.content || "");
     const [selectedTags, setSelectedTags] = useState(note.tags || []);
-
+    const titleRef = useRef(null);
     // Keep modal in sync if note prop changes
     useEffect(() => {
         if (note) {
@@ -30,7 +30,9 @@
             : [...prev, tag]
         );
     };
-
+    useEffect(() => {
+    if (isOpen) titleRef.current?.focus();
+    }, [isOpen]);
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-50">
         {/* Overlay */}
@@ -45,6 +47,7 @@
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Title"
                 value={title}
+                ref={titleRef}
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 />
