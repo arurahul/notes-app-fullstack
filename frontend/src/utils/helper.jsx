@@ -25,7 +25,7 @@ export function capitalizeFirst(str) {
 // Format tags to a readable list: ["life", "career"] → "Life, Career"
 export function formatTags(tagsArray) {
   if (!tagsArray || tagsArray.length === 0) return "No tags";
-  return tagsArray.map(capitalizeFirst).join(", ");
+  return tagsArray.map(tag => capitalizeFirst(tag.name)).join(", ");
 }
 
 // Get initials for avatars (optional for future UI use)

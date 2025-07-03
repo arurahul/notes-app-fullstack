@@ -1,8 +1,8 @@
 import React from 'react';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from "./features/auth/Login"
+import Register from './features/auth/Register';
 import { Route, BrowserRouter as Router,Routes } from 'react-router-dom';
-import Notes from './pages/Notes';
+import Notes from './features/notes/Notes';
 import Navbar from './components/Navbar';
 import NoteEditor from './pages/NoteEditor';
 import ProtectedRoute from './components/ProtectedRoute';

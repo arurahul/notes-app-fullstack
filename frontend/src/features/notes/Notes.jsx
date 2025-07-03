@@ -101,6 +101,20 @@
         };
     }, []);
 
+    //CreateNote
+    const handleCreateNote=async (noteData) =>{
+        try{
+            const response=await axiosInstance.post('/notes',noteData);
+            toast.success("Note created successfully");
+            fetchNotes();
+        }
+        catch(error)
+        {
+            console.log("error");
+            toast.error("Failed to create Note");
+        }
+    }
+
     // Delete note handler
     const handleDelete = async (id) => {
         try {
@@ -133,6 +147,7 @@
         toast.error("Failed to update note");
         }
     };
+
 
     const handleTogglePin = async (note) => {
     try {
@@ -249,6 +264,7 @@
         <CreateNoteModal
             isOpen={isCreateOpen}
             onClose={() => setIsCreateOpen(false)}
+            onCreate={handleCreateNote}
             onSuccess={() => {
             setIsCreateOpen(false);
             fetchNotes(selectedTag,searchTerm, page);

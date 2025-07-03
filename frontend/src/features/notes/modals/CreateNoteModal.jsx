@@ -9,7 +9,7 @@
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
-        onCreate({ title, content, tags: selectedTags });
+        onCreate({ title:title, content:content, tags: selectedTags });
         setTitle("");
         setContent("");
         setSelectedTags([]);

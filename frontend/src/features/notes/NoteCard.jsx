@@ -1,7 +1,7 @@
     import { useState } from "react";
     import { Dialog } from "@headlessui/react";
     import {PinIcon,PinOffIcon,Pencil, Trash2} from "lucide-react";
-    import { truncateText, formatDate, formatTags } from "../utils/helper";
+    import { truncateText, formatDate, formatTags } from "../../utils/helper";
     export default function NoteCard({ note, onDelete, onEdit,onTogglePin }) {
     const [isDeleteConfirm, setIsDeleteConfirm] = useState(false);
 

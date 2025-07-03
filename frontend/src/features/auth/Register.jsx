@@ -1,6 +1,6 @@
     import { useState } from "react";
-    import LoadingSpinner from "../components/LoadingSpinner";
-    import axiosInstance from "../api/axiosInstance";
+    import LoadingSpinner from "../../components/ui/LoadingSpinner";
+    import axiosInstance from "../../api/axiosInstance";
     import { useNavigate } from "react-router-dom";
     export default function Register() {
     const [formData, setFormData] = useState({

@@ -1,7 +1,7 @@
     import { useState } from "react";
-    import LoadingSpinner from "../components/LoadingSpinner";
+    import LoadingSpinner from "../../components/ui/LoadingSpinner";
     import { useNavigate } from 'react-router-dom';
-    import axiosInstance from "../api/axiosInstance";
+    import axiosInstance from "../../api/axiosInstance";
 
     export default function Login() {
     const [formData, setFormData] = useState({ email: "", password: "" });
