@@ -1,154 +1,201 @@
-# Notes App
 
-A full-stack Notes application built with Flask (backend), React (frontend), SQLAlchemy, Redis, and JWT authentication.
+# 📘 Notes App
+
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/github/license/arurahul/notes-app)
+![Stack](https://img.shields.io/badge/stack-Flask%20%7C%20React%20%7C%20Redis-blue)
+
+A full-stack, real-time Notes application built with **Flask (backend)**, **React (frontend)**, **Redis**, **SQLAlchemy**, and **JWT authentication**.
 
 ---
 
-## Project Overview
+## 📸 Screenshots
+
+| Notes List View | Note Modal |
+|------------------|------------|
+| ![Notes](./screenshots/notes-list.png) | ![Modal](./screenshots/note-modal.png) |
+
+---
+
+## 📌 Project Overview
 
 This app allows users to:
 
-- Register and login securely with JWT tokens
-- Create, read, update, and delete notes
-- Tag notes with multiple tags (many-to-many relationship)
-- Search notes by keywords in title or content
-- Filter notes by tags
-- Paginate notes for efficient browsing
+- 🔐 Register and login securely using JWT
+- 📝 Create, read, update, and delete notes
+- 🏷️ Tag notes with multiple tags (many-to-many relationship)
+- 🔍 Search notes by keywords in title or content
+- 🎯 Filter notes by tags
+- 📌 Pin/unpin important notes
+- 📄 Paginate notes for efficient browsing
+- 🔄 Receive real-time updates using WebSockets (Socket.IO)
+- ⚡️ Enjoy a smooth UI experience with toasts, modals, loading spinners
 
 ---
 
-## Tech Stack
-
-- **Backend:** Python, Flask, SQLAlchemy, Flask-JWT-Extended, Redis
-- **Frontend:** React.js, Axios, Tailwind CSS (planned)
-- **Database:** PostgreSQL / SQLite
-- **Caching:** Redis
-- **Authentication:** JWT tokens
-
----
-
-## Setup Instructions
+## 🛠 Tech Stack
 
 ### Backend
+- **Flask**, **Flask-SocketIO**
+- **SQLAlchemy**, **Flask-Migrate**
+- **JWT** with `Flask-JWT-Extended`
+- **Redis** for caching & pub/sub
+- **PostgreSQL / SQLite** (development)
 
-1. Clone repo:
-    ```bash
-    git clone https://github.com/yourusername/notes-app.git
-    cd notes-app
-    ```
+### Frontend
+- **React.js**, **Axios**, **React Router**
+- **Tailwind CSS**
+- **React Hot Toast**, **Headless UI**
+- **Socket.IO-client**
 
-2. Create virtual environment and activate:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # macOS/Linux
-    venv\Scripts\activate     # Windows
-    ```
+## ⚙️ Setup Instructions
 
-3. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 🔁 Backend
 
-4. Set environment variables (Linux/macOS):
-    ```bash
-    export FLASK_APP=app.py
-    export FLASK_ENV=development
-    export JWT_SECRET_KEY=your_secret_key
-    ```
+```bash
+cd backend
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
 
-5. Initialize database:
-    ```bash
-    flask db upgrade  # If using migrations
-    # or create tables manually
-    python
-    >>> from app import db
-    >>> db.create_all()
-    >>> exit()
-    ```
+# Set environment variables
+export FLASK_APP=app.py
+export FLASK_ENV=development
+export JWT_SECRET_KEY=your_secret_key
+export DATABASE_URL=sqlite:///notes.db
+export REDIS_URL=redis://localhost:6379/0
 
-6. Run the backend server:
-    ```bash
-    flask run
-    ```
+# Initialize DB
+flask db upgrade
 
----
+# Run server
+flask run
+```
 
-## API Endpoints
+### 💻 Frontend
 
-### Authentication
-
-| Method | Endpoint         | Description           |
-|--------|------------------|-----------------------|
-| POST   | `/auth/register` | Register a new user   |
-| POST   | `/auth/login`    | Login and get JWT     |
-
-### Notes
-
-| Method | Endpoint             | Description                         | Query Params               |
-|--------|----------------------|-----------------------------------|----------------------------|
-| GET    | `/notes`             | Get paginated notes for user       | `page`, `limit`, `q`, `tag` |
-| POST   | `/notes`             | Create a new note                  |                            |
-| GET    | `/notes/<note_id>`   | Get single note detail             |                            |
-| PUT    | `/notes/<note_id>`   | Update a note                     |                            |
-| DELETE | `/notes/<note_id>`   | Delete a note                     |                            |
-
-- **Search & Filter:**
-  - `q`: search keyword (title or content)
-  - `tag`: filter notes by tag name
-  - Example: `/notes?q=meeting&tag=work&page=1&limit=10`
-
-###c Tags
-
-| Method | Endpoint           | Description              |
-|--------|--------------------|--------------------------|
-| GET    | `/tags`            | Get all tags             |
-| POST   | `/tags`            | Create a new tag         |
-| PUT    | `/tags/<tag_id>`   | Update a tag             |
-| DELETE | `/tags/<tag_id>`   | Delete a tag             |
+```bash
+cd frontend
+npm install
+npm start
+```
 
 ---
 
-## Models Summary
+## 📚 API Endpoints
 
-- **User**: id, username, password (hashed)
-- **Note**: id, title, content, user_id, created_at, updated_at
-- **Tag**: id, name
-- **Association Table**: note_tag (note_id, tag_id) — many-to-many between notes and tags
+### 🔐 Authentication
 
----
+| Method | Endpoint         | Description        |
+|--------|------------------|--------------------|
+| POST   | `/auth/register` | Register user      |
+| POST   | `/auth/login`    | Login and get JWT  |
 
-## Usage Notes
+### 📝 Notes
 
-- All `/notes` and `/tags` endpoints require an Authorization header with a valid JWT access token.
-- Pagination defaults to 10 items per page.
-- Search is case-insensitive.
-- Tags filter matches exact tag names.
+| Method | Endpoint             | Description            |
+|--------|----------------------|------------------------|
+| GET    | `/notes`             | Paginated notes list   |
+| POST   | `/notes`             | Create a new note      |
+| GET    | `/notes/<id>`        | Get single note detail |
+| PUT    | `/notes/<id>`        | Update a note          |
+| DELETE | `/notes/<id>`        | Delete a note          |
+| PUT    | `/notes/<id>/pin`    | Toggle pin/unpin       |
 
----
+**Query Parameters for `/notes`:**
 
-## What You Learned So Far
+- `page`: page number
+- `limit`: notes per page
+- `q`: search keyword (title or content)
+- `tag`: tag filter (exact match)
 
-- Secure user authentication with JWT
-- Database modeling with many-to-many relationships
-- CRUD APIs with Flask and SQLAlchemy
-- Query parameter handling for search, filter, and pagination
-- Writing clean, maintainable backend code ready for production
-- Built detail API with route caching using Redis
-- Cached frequently accessed shared data
-- Connected, configured, and tested with Flask
-- Implemented time-based TTL caching with decorator logic
----
+### 🏷️ Tags
 
-### Day 5: Redis Caching Integration
-
-- ✅ Added Redis setup in `app.py` using Flask-Caching
-- ✅ Cached `GET /notes/<id>` route (60s TTL)
-- ✅ Cached `GET /tags` route (5min TTL)
-- ✅ Verified Redis performance using repeat API calls
-- ✅ Ensured extension order (cache before blueprints)
+| Method | Endpoint           | Description        |
+|--------|--------------------|--------------------|
+| GET    | `/tags`            | Get all tags       |
+| POST   | `/tags`            | Create a tag       |
+| PUT    | `/tags/<id>`       | Edit a tag         |
+| DELETE | `/tags/<id>`       | Delete a tag       |
 
 ---
 
-## License
+## 🧠 Models Summary
 
-MIT © ArvindRahul
+- **User**: `id`, `username`, `password`
+- **Note**: `id`, `title`, `content`, `is_pinned`, `user_id`, timestamps
+- **Tag**: `id`, `name`
+- **note_tag**: join table for notes ↔ tags (many-to-many)
+
+---
+
+## 🚀 Real-Time Features
+
+- Emit events for:
+  - `note_created`
+  - `note_updated`
+  - `note_deleted`
+  - `note_pinned`
+- Auto-refresh notes list across tabs/users using Flask-SocketIO + Redis pub/sub
+
+---
+
+## 🧪 What You've Accomplished
+
+### ✅ Day 1–4:
+- Flask backend with auth, notes, tags routes
+- SQLAlchemy models and JWT setup
+
+### ✅ Day 5:
+- Redis route caching for:
+  - `GET /notes/<id>` – 60s
+  - `GET /tags` – 5 min
+
+### ✅ Day 6–8:
+- React UI with login, register, create/edit modals
+- Reusable components with toast feedback
+- Real-time sync via Flask-SocketIO
+- `useNoteSocket` hook
+
+### ✅ Day 9:
+- Search, filter, pagination on `/notes`
+- Pinned notes support (UI + backend)
+
+### ✅ Day 10:
+- Full UI polish and cleanup
+- Loading states, empty states
+- Socket + pagination compatibility confirmed
+
+---
+
+## 📈 Roadmap
+
+- ✅ Deploy on Render (backend) and Vercel (frontend)
+- ✅ Add Redis + Socket support
+- 🧪 Unit + integration tests
+- 📎 Attachments (images, files)
+- ✨ Dark mode
+- 👥 Multi-user collab
+
+---
+
+## 🚀 Deployment
+
+### Backend (Render)
+
+- Create new Web Service
+- Set `start command`: `gunicorn -b 0.0.0.0:10000 app:app`
+- Environment vars:
+  - `FLASK_APP=app.py`
+  - `JWT_SECRET_KEY=...`
+  - `REDIS_URL=...`
+
+### Frontend (Vercel)
+
+- Output folder: `dist` or `build`
+- Set environment variable: `VITE_API_BASE_URL=https://<your-api>`
+
+---
+
+## 🔒 License
+
+MIT © [ArvindRahul]
