@@ -7,16 +7,6 @@
 
 A full-stack, real-time Notes application built with **Flask (backend)**, **React (frontend)**, **Redis**, **SQLAlchemy**, and **JWT authentication**.
 
----
-
-## 📸 Screenshots
-
-| Notes List View | Note Modal |
-|------------------|------------|
-| ![Notes](./screenshots/notes-list.png) | ![Modal](./screenshots/note-modal.png) |
-
----
-
 ## 📌 Project Overview
 
 This app allows users to:
