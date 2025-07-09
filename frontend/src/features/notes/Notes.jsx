@@ -3,7 +3,8 @@
     import { useNavigate } from "react-router-dom";
     import NoteCard from "./NoteCard";
     import socket from "../../socket";
-    import toast from "react-hot-toast";
+    import { toast } from 'react-toastify';
+
     import LoadingSpinner from "../../components/ui/LoadingSpinner";
     import TagFilter from "../../components/ui/TagFilter";
     import CreateNoteModal from "./modals/CreateNoteModal";
@@ -134,6 +135,7 @@
 
     // Update note handler (called from EditNoteModal)
     const handleUpdate = async (noteId, updatedNote) => {
+        console.log(updatedNote)
         try {
         const res = await axiosInstance.put(`/notes/${noteId}`, updatedNote);
         const updated = res.data.note;
@@ -152,14 +154,18 @@
     const handleTogglePin = async (note) => {
     try {
         const res = await axiosInstance.put(`/notes/${note.id}`, {
-        pinned: !note.pinned,
+        is_pinned: !note.pinned,
+        title:note.title,
+        content:note.content,
         });
         const updated = res.data.note;
 
         setNotes((prev) =>
         prev.map((n) => (n.id === updated.id ? updated : n))
+        
         );
         toast.success(updated.pinned ? "Note pinned!" : "Note unpinned.", { icon: "📌" });
+        fetchNotes(selectedTag,searchTerm,page);
     } catch (error) {
         console.error("Pin toggle failed:", error);
         toast.error("Failed to update pin status.");

@@ -6,6 +6,10 @@ import Notes from './features/notes/Notes';
 import Navbar from './components/Navbar';
 import NoteEditor from './pages/NoteEditor';
 import ProtectedRoute from './components/ProtectedRoute';
+
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export default function App() {
   return (
      
@@ -21,8 +25,9 @@ export default function App() {
             <Route path="/notes/:id" element={<NoteEditor />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-          
+            
           </Routes>
+          <ToastContainer position="top-right" autoClose={3000} />
           </div>
       </Router>
   

@@ -5,7 +5,6 @@
     const location = useLocation();
     const navigate = useNavigate();
     const [token, setToken] = useState(localStorage.getItem('accessToken'));
-
     useEffect(() => {
         setToken(localStorage.getItem('accessToken'));
     }, [location.pathname]); // update if route changes
@@ -27,7 +26,9 @@
         </h1>
 
         <div className="space-x-4">
-            {token ? (
+            {
+          
+            token ? (
             <>
                 <Link to="/notes" className={linkClasses('/notes')}>
                 Notes
