@@ -36,6 +36,10 @@ def getAllNotes():
         if tag_name:
             notes_query = notes_query.join(Note.tags).filter(Tag.name == tag_name)
 
+        # ✅ Sort by pinned first, then recent
+        notes_query = notes_query.order_by(
+            Note.is_pinned.desc(), Note.created_at.desc()
+        )
         paginated_notes = notes_query.paginate(page=page, per_page=limit, error_out=False)
 
         notes = [note.to_dict() for note in paginated_notes.items]
@@ -76,13 +80,30 @@ def get_note(note_id):
 @routes_bp.route("/notes",methods=['POST'], endpoint='create_note')
 @jwt_required()
 def createNote():
-    user_id=get_jwt_identity()
-    data=request.get_json()
-    new_note=Note(title=data["title"],content=data["content"],user_id=int(user_id))
-    db.session.add(new_note)
+    data = request.get_json()
+    user_id = get_jwt_identity()
+
+    title = data.get('title')
+    content = data.get('content')
+    tag_names = data.get('tags', [])
+    is_pinned = data.get('is_pinned', False)  # ✅ default to False
+
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+
+    tags = Tag.query.filter(Tag.name.in_(tag_names)).all()
+
+    note = Note(
+        title=title,
+        content=content,
+        user_id=user_id,
+        is_pinned=is_pinned,
+        tags=tags
+    )
+    db.session.add(note)
     db.session.commit()
-    socketio.emit("note_created", new_note.to_dict())
-    return jsonify(new_note.to_dict()),201
+    socketio.emit("note_created", note.to_dict())
+    return jsonify(note.to_dict()),201
 
 #Update Note
 @routes_bp.route("/notes/<int:notes_id>",methods=['PUT'], endpoint='update_note')
@@ -91,10 +112,23 @@ def updateNotes(notes_id):
     user_id = get_jwt_identity()
     data=request.get_json()
     note=Note.query.filter_by(id=notes_id,user_id=int(user_id)).first()
+    
     if note:
         note.title=data["title"]
         note.content=data["content"]
-        note.pinned=data.get("pinned",note.pinned)
+        note.is_pinned=data["pinned"]
+        tag_names = data.get("tags", [])
+        if isinstance(tag_names, list):
+            # Clear old tags
+            note.tags.clear()
+
+        for tag_obj in tag_names:
+            tag_name=tag_obj["name"]
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if not tag:
+                tag = Tag(name=tag_name)
+                db.session.add(tag)
+            note.tags.append(tag)
         db.session.commit()
         socketio.emit("note_updated", note.to_dict())
         return jsonify({"note":note.to_dict()}), 200

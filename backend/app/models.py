@@ -12,7 +12,7 @@ class Note(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
-    
+    is_pinned=db.Column(db.Boolean,default=False)
     
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -23,6 +23,7 @@ class Note(db.Model):
             "id": self.id,
             "title": self.title,
             "content": self.content,
+            "pinned": self.is_pinned,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "tags": [tag.to_dict() for tag in self.tags],
