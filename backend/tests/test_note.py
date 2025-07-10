@@ -80,3 +80,35 @@ def test_search_notes_empty_keyword(client, auth_headers):
     # Should return all notes or raise an error, depending on your API logic
     res = client.get("/notes?search=", headers=auth_headers)
     assert res.status_code == 200  # or 400 if you require the keyword
+
+def test_filter_notes_by_tag(client, auth_headers):
+    # Create notes with different tags
+    client.post("/notes", json={
+        "title": "Work Task",
+        "content": "Finish report",
+        "tags": ["work"]
+    }, headers=auth_headers)
+
+    client.post("/notes", json={
+        "title": "Personal Task",
+        "content": "Buy groceries",
+        "tags": ["personal"]
+    }, headers=auth_headers)
+
+    client.post("/notes", json={
+        "title": "Both",
+        "content": "Work + Life balance",
+        "tags": ["work", "personal"]
+    }, headers=auth_headers)
+
+    # Filter by 'work' tag
+    res = client.get("/notes?tag=work", headers=auth_headers)
+    data = res.get_json()
+    assert res.status_code == 200
+    assert all("work" in [tag["name"] for tag in note["tags"]] for note in data)
+
+def test_filter_notes_by_invalid_tag(client, auth_headers):
+    # Filter by a tag that doesn’t exist
+    res = client.get("/notes?tag=nonexistent", headers=auth_headers)
+    assert res.status_code == 200
+    assert res.get_json() == []
